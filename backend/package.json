@@ -1,0 +1,26 @@
+{
+    "name": "process-video-and-store",
+    "version": "1.0.0",
+    "description": "A pipeline to convert audio file to text, chunk semantically, add temporal/spacial context and store in vector database.",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "axios": "^1.5.1",
+        "dotenv": "^16.3.1",
+        "fluent-ffmpeg": "^2.1.2",
+        "langchain": "^0.0.167",
+        "replicate": "^0.18.1"
+    },
+    "keywords": [
+        "langchain",
+        "openai",
+        "whisper",
+        "audio",
+        "loader"
+    ],
+    "author": "cyli",
+    "license": "MIT",
+    "type": "module"
+}
