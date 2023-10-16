@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { promises as fs } from 'fs';
 import dotenv from 'dotenv';
+import crypto from 'crypto';
 
 dotenv.config();
 
@@ -45,6 +46,10 @@ async function getEmbedding(text) {
     return response.data.data[0].embedding;
 }
 
+const getRandomId = () => {
+    return crypto.randomBytes(4).readUInt32BE(0, true);
+  };
+
 async function generateEmbeddings(textsAndContexts) {
     const embeddingsData = [];
 
@@ -52,9 +57,9 @@ async function generateEmbeddings(textsAndContexts) {
         try {
             const embedding = await getEmbedding(item.text);
             embeddingsData.push({
-                text: item.text,
+                id: getRandomId(),
                 embedding,
-                context: item.context
+                context: {...item.context, text: item.text}
             });
         } catch (error) {
             console.error('Error generating embedding for text:', item.text, error);
@@ -65,14 +70,14 @@ async function generateEmbeddings(textsAndContexts) {
 }
 
 // Usage
-const filePath = './lesson-texts/coxon1_output000.json';
+const filePath = './lesson-texts/coxon1.json';
 extractTextsAndContextFromFile(filePath).then(textsAndContexts => {
     return generateEmbeddings(textsAndContexts);
 }).then(embeddingsData => {
     console.log(embeddingsData);
 
     // Optionally save to a file
-    fs.writeFile('./lesson-embeddings/coxon1_output000_embeddings.json', JSON.stringify(embeddingsData, null, 2));
+    fs.writeFile('./lesson-embeddings/coxon1_output_embeddings.json', JSON.stringify(embeddingsData, null, 2));
 
 }).catch(error => {
     console.error('Error processing the data:', error);
