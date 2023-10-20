@@ -59,7 +59,7 @@ async function main() {
 }
 
 // Execute the main function
-main();
+//main();
 
 
 function generateParams() {
@@ -97,3 +97,4 @@ function generateParams() {
         SUMMARY_REFINE_PROMPT: SUMMARY_REFINE_PROMPT
     };
 }
+

@@ -5,10 +5,6 @@ import crypto from 'crypto';
 
 dotenv.config();
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_EMBEDDINGS_ENDPOINT = 'https://api.openai.com/v1/embeddings';
-const MODEL_ID = 'text-embedding-ada-002';
-
 // Function to estimate the number of tokens in a string
 const estimateTokens = (text) => text.split(' ').length;
 
@@ -72,52 +68,10 @@ async function extractTextsAndContextFromFile(filePath) {
     return textsAndContexts;
 }
 
-export async function getEmbedding(text) {
-    const response = await axios.post(OPENAI_EMBEDDINGS_ENDPOINT, {
-        input: text,
-        model: MODEL_ID
-    }, {
-        headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'Content-Type': 'application/json'
-        }
-    });
-
-    return response.data.data[0].embedding;
-}
-
-const getRandomId = () => {
-    return crypto.randomBytes(4).readUInt32BE(0, true);
-};
-
-async function generateEmbeddings(textsAndContexts) {
-    const embeddingsData = [];
-
-    for (const item of textsAndContexts) {
-        try {
-            const embedding = await getEmbedding(item.text);
-            embeddingsData.push({
-                id: getRandomId(),
-                embedding,
-                context: item.context // store the entire context without modifications
-            });
-        } catch (error) {
-            console.error('Error generating embedding for text:', item.text, error);
-        }
-    }
-
-    return embeddingsData;
-}
-
 // Usage
 const filePath = './lesson-texts/coxon1.json';
 extractTextsAndContextFromFile(filePath).then(textsAndContexts => {
-    return generateEmbeddings(textsAndContexts);
-}).then(embeddingsData => {
-    //console.log(embeddingsData);
-    // Optionally save to a file
-    fs.writeFile('./lesson-embeddings/coxon1_output_embeddings.json', JSON.stringify(embeddingsData, null, 2));
-
+    fs.writeFile('./lesson-texts/coxon1_big-chunk.json', JSON.stringify(textsAndContexts, null, 2));
 }).catch(error => {
     console.error('Error processing the data:', error);
 });

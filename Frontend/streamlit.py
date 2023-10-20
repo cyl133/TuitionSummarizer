@@ -1,44 +1,49 @@
-import os
-os.environ['OPENAI_API_KEY'] = "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"
 import streamlit as st
-from langchain.prompts import PromptTemplate
-from langchain.memory import ConversationBufferMemory
-from langchain.llms import OpenAI
-from langchain.chains import LLMChain
+import requests
 
-# Set the title using StreamLit
-st.title('Tuition Personal Assistant')
-input_text = st.text_input('Enter Your Text: ')
+# Server URL (modify this to your actual server URL)
+SERVER_URL = "http://localhost:5000/answer"
 
-# Setting up the prompt templates
-title_template = PromptTemplate(
-    input_variables=['concept'],
-    template='Give me a youtube video title about {concept}'
-)
+# Title
+st.title("AI Conversation")
 
-script_template = PromptTemplate(
-    input_variables=['title'],
-    template='''Give me an attractive youtube video script based on the title {title}.'''
-)
+# State management for the chat history
+# This uses Streamlit's session state feature to keep the chat history
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = ""
 
-# Initialize or retrieve the memory from session state
-if 'memoryT' not in st.session_state:
-    st.session_state.memoryT = ConversationBufferMemory(input_key='concept', memory_key='chat_history')
+# User input
+user_input = st.text_input("You: ")
 
-if 'memoryS' not in st.session_state:
-    st.session_state.memoryS = ConversationBufferMemory(input_key='title', memory_key='chat_history')
+# Send button to submit the question to the server
+if st.button("Send"):
+    if user_input:
+        # Update chat history with the user's message
+        st.session_state.chat_history += f"Human: {user_input}\n"
+        
+        # Prepare the request data
+        data = {
+            "question": user_input,
+            "chatHistory": st.session_state.chat_history  # sending accumulated chat history
+        }
 
-# Importing the large language model OpenAI via langchain
-model = OpenAI(temperature=0.6)
+        # Post the question to the server
+        response = requests.post(SERVER_URL, json=data)
 
-# Using the memories from session state
-chainT = LLMChain(llm=model, prompt=title_template, verbose=True, output_key='title', memory=st.session_state.memoryT)
-chainS = LLMChain(llm=model, prompt=script_template, verbose=True, output_key='script', memory=st.session_state.memoryS)
+        if response.status_code == 200:
+            # Retrieve the AI's response from the server's response
+            ai_response = response.json()
 
-# Display the output if the user gives an input
-if input_text:
-    title = chainT.run(input_text)
-    script = chainS.run(title=title)
-    
-    st.write(title)
-    st.write(script)
+            # Display the AI's response
+            st.write(f"AI: {ai_response}")
+
+            # Update the chat history with the AI's response
+            st.session_state.chat_history += f"AI: {ai_response}\n"
+        else:
+            st.error("Failed to get response.")
+    else:
+        st.warning("Input field is empty. Please ask something.")
+
+# Optional: Display the chat history
+st.write("Chat History:")
+st.write(st.session_state.chat_history)
