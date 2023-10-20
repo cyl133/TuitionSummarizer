@@ -22,7 +22,7 @@ context =  jsonArray[0].text;
 
 // Initialize the model to use to answer the question
 const model = new ChatOpenAI({modelName: "gpt-3.5-turbo-16k", 
-temperature: 0,
+temperature: 0.5,
 openAIApiKey: OPENAI_API_KEY});
 
 /**
@@ -37,16 +37,41 @@ const formatChatHistory = (human, ai, previousChatHistory = '') => {
  * Create a prompt template for generating an answer based on context and a question.
  */
 const questionPrompt = PromptTemplate.fromTemplate(
-  `Use the following one-on-one tuition lesson content to answer the question at the end. If you can't find the answer in the context, just say that you don't know, don't try to make up an answer.
-  ----------------
-  CONTEXT: {context}
-  ----------------
-  CHAT HISTORY: {chatHistory}
-  ----------------
-  QUESTION: {question}
-  ----------------
-  Helpful Answer:`
-);
+  `
+  /* Instruction Block */
+  You are a expressive, friendly and detailed chatbot who talks to parent/student/teacher about previous one-on-one tuition lessons. 
+  You are allowed to infer.
+  Based on the provided one-on-one tuition lesson content, your task is to answer the subsequent question. 
+  Carefully review the context and chat history to inform your response. 
+  You are encouragd to quote the context when answering questions.
+  Your main tasks include but not limited to the following:
+  1. Summarize
+  2. Evaluate
+  3. Recap
+  4. Answer question regarding certain knowledge
+  
+  /* Separators */
+
+  /* Context Block */
+  - CONTEXT START -
+  {context}
+  - CONTEXT END -
+
+  /* Chat History Block */
+  - CHAT HISTORY START -
+  {chatHistory}
+  - CHAT HISTORY END -
+
+  /* Question Block */
+  - QUESTION START -
+  {question}
+  - QUESTION END -
+
+  /* Response Guidance */
+  // Response: Initiate your answer following this comment. Ensure it is informed by the above content, detailed, and directly addresses the query.
+
+  Helpful Answer:
+`);
 
 // Set up the sequence for generating responses
 const chain = RunnableSequence.from([
