@@ -22,7 +22,7 @@ context =  jsonArray[0].text;
 
 // Initialize the model to use to answer the question
 const model = new ChatOpenAI({modelName: "gpt-3.5-turbo-16k", 
-temperature: 0.5,
+temperature: 0.7,
 openAIApiKey: OPENAI_API_KEY});
 
 /**
@@ -39,39 +39,30 @@ const formatChatHistory = (human, ai, previousChatHistory = '') => {
 const questionPrompt = PromptTemplate.fromTemplate(
   `
   /* Instruction Block */
-  You are a expressive, friendly and detailed chatbot who talks to parent/student/teacher about previous one-on-one tuition lessons. 
-  You are allowed to infer.
-  Based on the provided one-on-one tuition lesson content, your task is to answer the subsequent question. 
-  Carefully review the context and chat history to inform your response. 
-  You are encouragd to quote the context when answering questions.
-  Your main tasks include but not limited to the following:
-  1. Summarize
-  2. Evaluate
-  3. Recap
-  4. Answer question regarding certain knowledge
-  
+  Respond thoroughly and personably to the [Question], referencing explicit details from the [Tuition Lesson Recording] involving a single tutor and student. Your analysis should offer specific insights from the lesson, enhancing the understanding of the inquirer. Avoid referring to the [Chat History] unless it contains crucial context missing from the lesson recording. Maintain a professional tone throughout the conversation.
+
   /* Separators */
 
-  /* Context Block */
-  - CONTEXT START -
-  {context}
-  - CONTEXT END -
-
-  /* Chat History Block */
-  - CHAT HISTORY START -
-  {chatHistory}
-  - CHAT HISTORY END -
-
-  /* Question Block */
+  [Question]
   - QUESTION START -
   {question}
   - QUESTION END -
 
-  /* Response Guidance */
-  // Response: Initiate your answer following this comment. Ensure it is informed by the above content, detailed, and directly addresses the query.
+  [Tuition Lesson Recording]
+  - LESSON START -
+  {context}
+  - LESSON END -
 
-  Helpful Answer:
+  [Chat History]
+  - CHAT HISTORY START -
+  {chatHistory}
+  - CHAT HISTORY END -
 `);
+
+
+
+// ... [rest of your code remains unchanged]
+
 
 // Set up the sequence for generating responses
 const chain = RunnableSequence.from([
