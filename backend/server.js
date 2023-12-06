@@ -16,7 +16,7 @@ const app = express();
 app.use(bodyParser.json());
 
 // Load in the file we want to use for question answering
-let context = fs.readFileSync("./lesson-texts/coxon1_big-chunk.json", "utf8");
+let context = fs.readFileSync("./lesson-texts/2023-11-23(English).json", "utf8");
 const jsonArray = JSON.parse(context);
 context =  jsonArray[0].text;
 
@@ -93,25 +93,61 @@ app.post('/answer', async (req, res) => {
   try {
     const question = req.body.question;
     const chatHistory = req.body.chatHistory;
+    const videoFileName = req.body.videoContext;  // Retrieve the video file name from the request
 
     // If there's no question, respond with an error
     if (!question) {
       return res.status(400).json({ error: 'No question provided' });
     }
 
+    // Load the corresponding video file's content
+    let videoContent = "";
+    if (videoFileName) {
+      // Construct the file path based on the videoFileName
+      const videoFilePath = `./lesson-texts/${videoFileName}.json`; // Adjust the path as needed
+      try {
+        videoContent = fs.readFileSync(videoFilePath, "utf8");
+      } catch (fileError) {
+        console.error('Error reading video file:', fileError);
+        return res.status(500).json({ error: 'Error reading video file' });
+      }
+    }
+
+    // Use videoContent as context if available, otherwise use default context
+    const contextToUse = videoContent || context;
+
     // Generate the answer
     const result = await chain.invoke({
       question: question,
-      chatHistory: chatHistory, // if you want to maintain a chat history
+      chatHistory: chatHistory,
+      context: contextToUse,  // Use the loaded video content as context
     });
-    console.log(result);
+
     // Respond with the answer
     if (result) {
-      // If there is a valid response, send it back to the user.
-      return res.json({ result });}
+      return res.json({ result });
+    }
   } catch (error) {
     console.error('Error while generating answer:', error);
     return res.status(500).json({ error: 'Error while generating answer' });
+  }
+});
+
+app.get('/videos', (req, res) => {
+  const directoryPath = './lesson-texts/';
+
+  try {
+    // Read directory and filter out non-JSON files (or adjust filter as needed)
+    const files = fs.readdirSync(directoryPath)
+                    .filter(file => file.endsWith('.json'));
+
+    // Optionally, strip the file extension if you just want the names
+    const videoNames = files.map(file => file.replace('.json', ''));
+
+    res.json(videoNames);
+  } catch (error) {
+    console.error('Error reading directory:', error);
+    res.status(500).json({ error: 'Error reading video directory' });
   }
 });
 
