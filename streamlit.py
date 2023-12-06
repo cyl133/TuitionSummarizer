@@ -6,7 +6,7 @@ SERVER_URL = "http://localhost:5000/answer"
 VIDEOS_URL = "http://localhost:5000/videos"
 
 # Title
-st.title("Tuition Pal 🤖")
+st.title("Lattice Learn 🤖")
 st.write("\n")  # Add a space after the title for better spacing
 
 # Custom styles for the chat history display
